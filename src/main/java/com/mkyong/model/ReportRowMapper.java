@@ -24,4 +24,3 @@ public class ReportRowMapper  implements RowMapper<Report> {
     }
 
 }
-

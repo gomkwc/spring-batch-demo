@@ -1,0 +1,14 @@
+create table TEMP_RAW(
+    DATE varchar(100) NOT NULL,
+    IMPRESSIONS varchar(100) NOT NULL,
+    CLICKS varchar(100) NOT NULL,
+    EARNING varchar(100) NOT NULL
+)ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+create table RAW_REPORT(
+    DATE varchar(100) NOT NULL,
+    IMPRESSIONS varchar(100) NOT NULL,
+    CLICKS varchar(100) NOT NULL,
+    EARNING varchar(100) NOT NULL
+)ENGINE=InnoDB DEFAULT CHARSET=utf8
+
