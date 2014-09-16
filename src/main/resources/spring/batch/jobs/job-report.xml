@@ -1,11 +1,23 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:batch="http://www.springframework.org/schema/batch" 
-	xmlns:task="http://www.springframework.org/schema/task"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/batch
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/batch
 		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
 		http://www.springframework.org/schema/beans 
-		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/task
+            http://www.springframework.org/schema/task/spring-task-3.2.xsd
+             http://www.springframework.org/schema/context
+             http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.mkyong" />
+
+    <!--scheduler (@Scheduled) & executor (@Async) Definition  -->
+    <task:scheduler id="taskScheduler" pool-size="1"/>
+    <task:executor id="taskExecutor" pool-size="1" />
+    <task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
 
     <import resource="classpath:spring/batch/config/context.xml"/>
     <import resource="classpath:spring/batch/config/database.xml"/>
@@ -15,16 +27,14 @@
 	<batch:job id="reportJob">
 		<batch:step id="step1">
             <batch:tasklet transaction-manager="transactionManager">
-            	<batch:chunk reader="mysqlItemReader" writer="mysqlItemWriter"
-					commit-interval="2">
-				</batch:chunk>
+            	<batch:chunk reader="mysqlItemReader" writer="mysqlItemWriter" commit-interval="2"/>
 			</batch:tasklet>
 		</batch:step>
 	</batch:job>
 
+    <!-- Read a csv file -->
 	<bean id="cvsFileItemReader" class="org.springframework.batch.item.file.FlatFileItemReader">
-
-		<!-- Read a csv file -->
+    	<!-- Read a csv file -->
 		<property name="resource" value="classpath:cvs/report.csv" />
 		<property name="lineMapper">
 			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
@@ -38,27 +48,22 @@
 				</property>
 
 				<property name="fieldSetMapper">
-				    
 				    <!-- return back to reader, rather than a mapped object. -->
 				    <!--
 				    	<bean class="org.springframework.batch.item.file.mapping.PassThroughFieldSetMapper" />
 				    -->
-				      
-					<!-- map to an object -->
-					<bean
-						class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper">
-						<property name="prototypeBeanName" value="report" />
+				    <!-- map to an object -->
+					<bean class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper">
+                        <property name="prototypeBeanName" value="report" />
 					</bean>
-					
 				</property>
-
 			</bean>
 		</property>
+    </bean>
 
-	</bean>
-
+    <!-- MySQL Reader -->
     <bean id="mysqlItemReader" class="org.springframework.batch.item.database.JdbcCursorItemReader" scope="step">
-        <property name="dataSource" ref="dataSource2"/>
+        <property name="dataSource" ref="dataSource"/>
         <property name="sql">
             <value>
                 <![CDATA[
@@ -71,12 +76,28 @@
         </property>
     </bean>
 
+    <!-- MS-SQL Reader -->
+    <bean id="mssqlItemReader" class="org.springframework.batch.item.database.JdbcCursorItemReader" scope="step">
+       <property name="dataSource" ref="dataSource"/>
+       <property name="sql">
+           <value>
+               <![CDATA[
+                    SELECT date,impressions,clicks,earning FROM TEMP_RAW WHERE clicks = #{jobParameters['clicks']}
+               ]]>
+           </value>
+       </property>
+       <property name="rowMapper">
+           <bean class="com.mkyong.model.ReportRowMapper" />
+       </property>
+    </bean>
+
+    <!-- MySQL Writer -->
     <bean id="mysqlItemWriter" class="org.springframework.batch.item.database.JdbcBatchItemWriter">
-		<property name="dataSource" ref="dataSource" />
+		<property name="dataSource" ref="dataSource2" />
 		<property name="sql">
 			<value>
                 <![CDATA[
-            	    insert into RAW_REPORT(DATE,IMPRESSIONS,CLICKS,EARNING) values (:date, :impressions, :clicks, :earning)
+                    insert into RAW_REPORT(DATE,IMPRESSIONS,CLICKS,EARNING) values (:date, :impressions, :clicks, :earning)
                 ]]>
 			</value>
 		</property>
@@ -85,4 +106,5 @@
 			<bean class="org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider" />
 		</property>
 	</bean>
+
 </beans>

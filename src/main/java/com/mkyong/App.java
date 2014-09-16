@@ -18,20 +18,20 @@ public class App {
 		ApplicationContext context = 
 				new ClassPathXmlApplicationContext(springConfig);
 		
-		JobLauncher jobLauncher = (JobLauncher) context.getBean("jobLauncher");
-		Job job = (Job) context.getBean("reportJob");
-
-		try {
-
-            JobParameters jobParameters = new JobParametersBuilder().addString("clicks", "50").toJobParameters();
-            JobExecution execution = jobLauncher.run(job, jobParameters);
-			System.out.println("Exit Status : " + execution.getStatus());
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		System.out.println("Done");
+//		JobLauncher jobLauncher = (JobLauncher) context.getBean("jobLauncher");
+//		Job job = (Job) context.getBean("reportJob");
+//
+//		try {
+//
+//            JobParameters jobParameters = new JobParametersBuilder().addString("clicks", "40").toJobParameters();
+//            JobExecution execution = jobLauncher.run(job, jobParameters);
+//			System.out.println("Exit Status : " + execution.getStatus());
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//		System.out.println("Done");
 
 	}
 }
